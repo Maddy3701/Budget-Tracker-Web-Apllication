@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BudgetWise — Smart Budget Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+/* DARK THEME */
+:root,[data-theme="dark"]{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a26;--bg4:#22223a;
+  --surface:#16161f;--surface2:#1e1e2e;--surface3:#252535;
+  --border:#ffffff12;--border2:#ffffff1e;--border3:#ffffff30;
+  --text:#f0f0ff;--text2:#a0a0c0;--text3:#606080;
+  --accent:#7c6aff;--accent2:#a594ff;--accent3:#5044cc;
+  --green:#22c77a;--green2:#16a360;--green3:#0d6b40;--greenDim:#22c77a1a;
+  --red:#ff5566;--red2:#cc3344;--red3:#8b1a26;--redDim:#ff55661a;
+  --amber:#ffb830;--amberDim:#ffb8301a;--blue:#4d9fff;--blueDim:#4d9fff1a;
+  --shadow:0 4px 28px rgba(0,0,0,0.5);--shadow-sm:0 2px 12px rgba(0,0,0,0.3);
+  --logo-grad:linear-gradient(135deg,#a594ff,#22c77a);
+  --auth-bg:linear-gradient(135deg,#0d0d1a 0%,#111128 60%,#0a0f1a 100%);
+}
+/* LIGHT THEME */
+[data-theme="light"]{
+  --bg:#f2f2f8;--bg2:#e8e8f0;--bg3:#dcdce8;--bg4:#d0d0de;
+  --surface:#ffffff;--surface2:#f4f4fb;--surface3:#ebebf5;
+  --border:#00000010;--border2:#0000001a;--border3:#00000028;
+  --text:#0e0e2a;--text2:#44446a;--text3:#8888aa;
+  --accent:#5b4ee0;--accent2:#7260f0;--accent3:#4438c0;
+  --green:#0f9955;--green2:#0a7d44;--green3:#d2f5e4;--greenDim:#0f99551a;
+  --red:#c42636;--red2:#a01e2c;--red3:#fde4e6;--redDim:#c426361a;
+  --amber:#a06800;--amberDim:#a068001a;--blue:#1464c0;--blueDim:#1464c01a;
+  --shadow:0 4px 20px rgba(0,0,0,0.09);--shadow-sm:0 2px 8px rgba(0,0,0,0.06);
+  --logo-grad:linear-gradient(135deg,#5b4ee0,#0f9955);
+  --auth-bg:linear-gradient(135deg,#eeeef8 0%,#f4f4ff 60%,#e8f0fa 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .22s,color .22s}
+h1,h2,h3,h4{font-family:'Syne',sans-serif}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:'DM Sans',sans-serif;outline:none}
+a{color:var(--accent2);text-decoration:none;cursor:pointer}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--border3);border-radius:3px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .35s ease both}
+.fade-in{animation:fadeIn .25s ease both}
+
+/* ── THEME TOGGLE ── */
+.theme-toggle{width:38px;height:38px;border-radius:10px;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:all .18s;color:var(--text)}
+.theme-toggle:hover{background:var(--surface3);transform:scale(1.06)}
+
+/* ── AUTH ── */
+.auth-shell{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--auth-bg);position:relative;overflow:hidden}
+.auth-orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.12;pointer-events:none;transition:background .22s}
+.auth-card{background:var(--surface);border:1px solid var(--border2);border-radius:24px;padding:38px 36px;width:100%;max-width:430px;box-shadow:var(--shadow);animation:fadeUp .45s ease;position:relative;z-index:1}
+.auth-logo-mark{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;background:var(--logo-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px;display:block;text-align:center;margin-bottom:3px}
+.auth-logo-sub{font-size:11px;color:var(--text3);text-align:center;letter-spacing:.6px;text-transform:uppercase;margin-bottom:26px;display:block}
+.auth-title{font-size:21px;font-weight:800;text-align:center;margin-bottom:5px}
+.auth-sub{font-size:13.5px;color:var(--text2);text-align:center;margin-bottom:26px}
+.auth-switch-row{text-align:center;margin-top:20px;font-size:13px;color:var(--text2)}
+.auth-switch-row a{color:var(--accent2);font-weight:600}
+.auth-switch-row a:hover{text-decoration:underline}
+.auth-top{display:flex;justify-content:flex-end;margin-bottom:10px}
+/* password strength */
+.pw-bar{height:3px;border-radius:100px;background:var(--border2);margin-top:6px;overflow:hidden}
+.pw-fill{height:100%;border-radius:100px;transition:width .3s,background .3s}
+
+/* input with icon */
+.inp-wrap{position:relative}
+.inp-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--text3)}
+.inp-wrap .fi{padding-left:40px}
+.inp-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text3);transition:color .12s}
+.inp-eye:hover{color:var(--text2)}
+
+/* ── LAYOUT ── */
+.app-shell{display:flex;min-height:100vh}
+.sidebar{width:244px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;transition:transform .28s ease,background .22s,border-color .22s}
+.sb-logo{padding:22px 18px 14px;border-bottom:1px solid var(--border)}
+.logo-mark{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;background:var(--logo-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.5px}
+.logo-sub{font-size:9.5px;color:var(--text3);margin-top:2px;letter-spacing:.8px;text-transform:uppercase}
+.sb-nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:3px;overflow-y:auto}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;cursor:pointer;transition:all .13s;color:var(--text2);font-size:13.5px;position:relative}
+.ni:hover{background:var(--surface2);color:var(--text)}
+.ni.active{background:linear-gradient(135deg,rgba(124,106,255,.15),rgba(34,199,122,.07));color:var(--accent2);font-weight:600}
+.ni.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:17px;background:var(--accent);border-radius:0 3px 3px 0}
+.ni-ico{width:19px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.sb-foot{padding:12px 10px;border-top:1px solid var(--border)}
+.user-chip{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;background:var(--surface2);cursor:pointer;transition:background .12s;margin-bottom:9px}
+.user-chip:hover{background:var(--surface3)}
+.u-avatar{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--accent3),var(--accent));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;font-family:'Syne',sans-serif;flex-shrink:0}
+.u-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.u-email{font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-actions{display:flex;gap:7px}
+.main{margin-left:244px;flex:1;min-height:100vh;transition:margin-left .28s}
+.mhd{padding:18px 28px 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;padding-bottom:14px;background:var(--bg);border-bottom:1px solid var(--border);transition:background .22s,border-color .22s}
+.page-title{font-size:21px;font-weight:800;letter-spacing:-.5px}
+.page-content{padding:22px 28px 40px}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;transition:background .22s,border-color .22s}
+.card-sm{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;transition:background .22s}
+
+/* ── STAT CARDS ── */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:13px;margin-bottom:18px}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 18px;position:relative;overflow:hidden;transition:border-color .18s,transform .18s,background .22s}
+.sc:hover{border-color:var(--border2);transform:translateY(-2px)}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc.income::before{background:linear-gradient(90deg,var(--green),var(--green2))}
+.sc.expense::before{background:linear-gradient(90deg,var(--red),var(--red2))}
+.sc.balance::before{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.sc.goals::before{background:linear-gradient(90deg,var(--blue),#2277cc)}
+.sc.warn::before{background:linear-gradient(90deg,var(--amber),#ff8800)}
+.sl{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:7px}
+.sv{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.8px}
+.sc2{font-size:10.5px;margin-top:4px;color:var(--text3)}
+.sc-ico{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:28px;opacity:.1}
+
+/* ── ALERTS ── */
+.alert{border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;margin-bottom:10px}
+.alert-warning{background:var(--amberDim);border:1px solid rgba(200,150,30,.25);color:var(--amber)}
+.alert-success{background:var(--greenDim);border:1px solid rgba(34,199,122,.25);color:var(--green)}
+.alert-danger{background:var(--redDim);border:1px solid rgba(200,50,70,.25);color:var(--red)}
+.alert-info{background:var(--blueDim);border:1px solid rgba(77,159,255,.25);color:var(--blue)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 17px;border-radius:10px;font-size:13.5px;font-weight:500;transition:all .13s;cursor:pointer;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 14px rgba(124,106,255,.28)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}.btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--border3)}
+.btn-danger{background:var(--red3);color:var(--red);border:1px solid rgba(200,50,70,.22)}.btn-danger:hover{background:var(--red2);color:#fff}
+.btn-success{background:var(--green3);color:var(--green);border:1px solid rgba(34,199,122,.22)}.btn-success:hover{background:var(--green2);color:#fff}
+.btn-full{width:100%;justify-content:center}
+.btn-sm{padding:6px 13px;font-size:12.5px}.btn-xs{padding:4px 9px;font-size:11.5px}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+/* ── FORMS ── */
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;font-weight:600}
+.fi{width:100%;background:var(--bg2);border:1.5px solid var(--border2);border-radius:10px;padding:9px 13px;color:var(--text);font-size:13.5px;transition:border-color .14s,background .14s,box-shadow .14s}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,106,255,.12);background:var(--surface)}
+.fi::placeholder{color:var(--text3)}
+.fs{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.f-err{font-size:11px;color:var(--red);margin-top:3px}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;font-size:11px;font-weight:600}
+.badge-income{background:var(--greenDim);color:var(--green)}
+.badge-expense{background:var(--redDim);color:var(--red)}
+
+/* ── TRANSACTION LIST ── */
+.tx-list{display:flex;flex-direction:column;gap:1px}
+.tx-item{display:flex;align-items:center;gap:13px;padding:9px 12px;border-radius:10px;transition:background .1s}
+.tx-item:hover{background:var(--surface2)}
+.tx-ico{width:35px;height:35px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.tx-ico.income{background:var(--greenDim)}.tx-ico.expense{background:var(--redDim)}
+.tx-inf{flex:1;min-width:0}
+.tx-cat{font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-note{font-size:10.5px;color:var(--text3);margin-top:1px}
+.tx-amt{font-family:'Syne',sans-serif;font-size:13.5px;font-weight:700;text-align:right;flex-shrink:0}
+.tx-amt.income{color:var(--green)}.tx-amt.expense{color:var(--red)}
+.tx-dt{font-size:9.5px;color:var(--text3);text-align:right;margin-top:1px}
+
+/* ── MODAL ── */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn .14s ease}
+.md{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:24px;width:100%;max-width:450px;animation:fadeUp .18s ease;max-height:90vh;overflow-y:auto}
+.mdhd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.mdt{font-size:16px;font-weight:700;font-family:'Syne',sans-serif}
+.mdx{width:29px;height:29px;border-radius:7px;background:var(--surface2);color:var(--text2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .1s}
+.mdx:hover{background:var(--surface3);color:var(--text)}
+
+/* ── TOAST ── */
+.toast-con{position:fixed;bottom:18px;right:18px;z-index:500;display:flex;flex-direction:column;gap:7px}
+.toast{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;min-width:250px;max-width:340px;font-size:13px;display:flex;align-items:center;gap:9px;animation:slideDown .22s ease;box-shadow:var(--shadow)}
+.toast.success{border-left:3px solid var(--green)}.toast.error{border-left:3px solid var(--red)}
+.toast.warning{border-left:3px solid var(--amber)}.toast.info{border-left:3px solid var(--blue)}
+
+/* ── MISC ── */
+.progress-bar{background:var(--bg3);border-radius:100px;overflow:hidden;height:6px}
+.progress-fill{height:100%;border-radius:100px;transition:width .55s cubic-bezier(.34,1.56,.64,1)}
+.chart-tabs{display:flex;gap:3px;background:var(--bg3);padding:3px;border-radius:9px;margin-bottom:16px}
+.chart-tab{flex:1;padding:6px;border-radius:7px;font-size:12px;font-weight:500;text-align:center;cursor:pointer;color:var(--text3);transition:all .13s}
+.chart-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.type-toggle{display:flex;background:var(--bg3);border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:14px}
+.type-btn{flex:1;padding:8px;font-size:13px;font-weight:500;cursor:pointer;transition:all .13s;color:var(--text3);background:transparent}
+.type-btn.income.active{background:var(--green3);color:var(--green)}
+.type-btn.expense.active{background:var(--red3);color:var(--red)}
+.cat-pill-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.cat-pill{padding:5px 11px;border-radius:100px;font-size:12px;font-weight:500;border:1.5px solid;cursor:pointer;transition:all .13s;user-select:none}
+.cat-pill.selected{transform:scale(1.05)}.cat-pill:hover{opacity:.85}
+.goal-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:17px;position:relative;overflow:hidden;transition:all .18s}
+.goal-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.goal-card.completed{opacity:.65}
+.chat-messages{display:flex;flex-direction:column;gap:13px;max-height:370px;overflow-y:auto;padding:3px 1px}
+.chat-msg{display:flex;gap:9px;animation:fadeUp .18s ease}
+.chat-msg.user{flex-direction:row-reverse}
+.chat-avatar{width:29px;height:29px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;font-weight:700;font-family:'Syne',sans-serif}
+.chat-avatar.ai{background:linear-gradient(135deg,var(--accent3),var(--accent));color:#fff}
+.chat-avatar.user{background:var(--surface3)}
+.chat-bubble{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:8px 12px;font-size:12.5px;line-height:1.65;max-width:85%}
+.chat-msg.user .chat-bubble{background:rgba(124,106,255,.13);border-color:rgba(124,106,255,.26);color:var(--accent2)}
+.chat-input-row{display:flex;gap:7px;margin-top:11px}
+.spinner{width:17px;height:17px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;flex-shrink:0}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+.shtl{font-size:14.5px;font-weight:700;font-family:'Syne',sans-serif}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.empty{text-align:center;padding:44px 20px;color:var(--text3)}
+.empty-ico{font-size:42px;margin-bottom:10px;display:block;opacity:.5}
+.lc{display:flex;align-items:center;justify-content:center;min-height:180px;gap:11px;color:var(--text3);font-size:13.5px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:9px 13px;text-align:left;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+td{padding:10px 13px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.table-wrap{overflow-x:auto}
+.hamburger{display:none;width:35px;height:35px;background:var(--surface);border:1px solid var(--border);border-radius:9px;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--text);transition:all .13s}
+.hamburger:hover{background:var(--surface2)}
+.sb-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
+.sb-backdrop.show{display:block}
+@media(max-width:800px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .hamburger{display:flex}
+  .mhd{padding:13px 15px 13px}
+  .page-content{padding:14px 15px 36px}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .fr{grid-template-columns:1fr}
+  .auth-card{padding:24px 18px}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback,createContext,useContext}=React;
+
+/* ── CONSTANTS ── */
+const API='http://localhost:5000/api';
+const INCOME_CATS=['Salary','Pocket Money','Other'];
+const EXPENSE_CATS=['Food','Travel','Fun','Self','Other'];
+const CAT_ICONS={Salary:'💼','Pocket Money':'👝',Food:'🍜',Travel:'✈️',Fun:'🎮',Self:'💆',Other:'📦'};
+const CAT_COLORS={Salary:'#22c77a','Pocket Money':'#4d9fff',Food:'#ff5566',Travel:'#ffb830',Fun:'#a594ff',Self:'#ff7c5c',Other:'#888'};
+
+/* ── TOAST ── */
+const TC=createContext(null);
+function ToastProvider({children}){
+  const [ts,sTs]=useState([]);
+  const add=useCallback((msg,type='info')=>{const id=Date.now()+Math.random();sTs(p=>[...p,{id,msg,type}]);setTimeout(()=>sTs(p=>p.filter(x=>x.id!==id)),4000);},[]);
+  const ico={success:'✓',error:'✕',warning:'⚠',info:'ℹ'};
+  const col={success:'var(--green)',error:'var(--red)',warning:'var(--amber)',info:'var(--blue)'};
+  return(<TC.Provider value={add}>{children}
+    <div className="toast-con">
+      {ts.map(t=><div key={t.id} className={`toast ${t.type}`}>
+        <span style={{fontWeight:700,color:col[t.type],fontSize:14}}>{ico[t.type]}</span><span>{t.msg}</span>
+      </div>)}
+    </div>
+  </TC.Provider>);
+}
+const useToast=()=>useContext(TC);
+
+/* ── THEME ── */
+const ThC=createContext(null);
+function ThemeProvider({children}){
+  const [theme,sTheme]=useState(()=>localStorage.getItem('bw_theme')||'dark');
+  useEffect(()=>{document.documentElement.setAttribute('data-theme',theme);localStorage.setItem('bw_theme',theme);},[theme]);
+  const toggle=()=>sTheme(t=>t==='dark'?'light':'dark');
+  return <ThC.Provider value={{theme,toggle}}>{children}</ThC.Provider>;
+}
+const useTheme=()=>useContext(ThC);
+function ThemeToggle(){
+  const {theme,toggle}=useTheme();
+  return(<button className="theme-toggle" onClick={toggle} title={theme==='dark'?'Light mode':'Dark mode'}>
+    {theme==='dark'?<Icon n="sun" size={16}/>:<Icon n="moon" size={16}/>}
+  </button>);
+}
+
+/* ── AUTH ── */
+const AC=createContext(null);
+function AuthProvider({children}){
+  const [user,sUser]=useState(null);
+  const [token,sToken]=useState(()=>localStorage.getItem('bw_token'));
+  const [loading,sLoading]=useState(true);
+  useEffect(()=>{
+    if(token){
+      fetch(`${API}/auth/me`,{headers:{Authorization:`Bearer ${token}`}})
+        .then(r=>r.ok?r.json():Promise.reject())
+        .then(u=>sUser(u))
+        .catch(()=>{sToken(null);localStorage.removeItem('bw_token');})
+        .finally(()=>sLoading(false));
+    }else sLoading(false);
+  },[]);
+  const login=async(email,password)=>{
+    const r=await fetch(`${API}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+    const d=await r.json();if(!r.ok)throw new Error(d.error||'Login failed');
+    sToken(d.token);sUser(d.user);localStorage.setItem('bw_token',d.token);return d;
+  };
+  const register=async(name,email,password)=>{
+    const r=await fetch(`${API}/auth/register`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});
+    const d=await r.json();if(!r.ok)throw new Error(d.error||'Registration failed');
+    sToken(d.token);sUser(d.user);localStorage.setItem('bw_token',d.token);return d;
+  };
+  const logout=()=>{sToken(null);sUser(null);localStorage.removeItem('bw_token');};
+  const updateUser=u=>sUser(p=>({...p,...u}));
+  return <AC.Provider value={{user,token,loading,login,register,logout,updateUser}}>{children}</AC.Provider>;
+}
+const useAuth=()=>useContext(AC);
+
+/* ── API HELPER ── */
+function useApi(){
+  const {token,logout}=useAuth();
+  return useCallback(async(path,opts={})=>{
+    const r=await fetch(`${API}${path}`,{...opts,headers:{'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{}),  ...(opts.headers||{})}});
+    if(r.status===401){logout();throw new Error('Session expired');}
+    const d=await r.json();if(!r.ok)throw new Error(d.error||d.message||'API error');return d;
+  },[token,logout]);
+}
+
+/* ── FORMAT ── */
+const fmt=n=>`₹${Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:0})}`;
+const fd=d=>new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+const fds=d=>new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+
+/* ── ICONS ── */
+const Icon=({n,size=16})=>{
+  const I={
+    dashboard:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>,
+    transaction:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M7 16V4m0 0L4 7m3-3l3 3M17 8v12m0 0l3-3m-3 3l-3-3"/></svg>,
+    analytics:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+    goals:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
+    ai:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg>,
+    settings:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M2 12h2m16 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,
+    plus:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    trash:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6m4-6v6M9 6V4h6v2"/></svg>,
+    check:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>,
+    send:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
+    logout:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
+    download:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+    sun:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+    moon:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
+    user:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+    mail:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
+    lock:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+    eye:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+    eyeOff:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
+    menu:<svg width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+  };
+  return I[n]||null;
+};
+
+/* ═══════════════════════════════ AUTH PAGES ════════════════════════════════ */
+
+function pwStrength(pw){
+  if(!pw)return 0;let s=0;
+  if(pw.length>=8)s++;if(/[A-Z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  return s;
+}
+
+function LoginPage({onSwitch}){
+  const {login}=useAuth();const toast=useToast();
+  const [f,sF]=useState({email:'',password:''});
+  const [errs,sErrs]=useState({});const [busy,sBusy]=useState(false);const [showPw,sShowPw]=useState(false);
+  const validate=()=>{const e={};if(!f.email)e.email='Email required';else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email))e.email='Invalid email';if(!f.password||f.password.length<6)e.password='Min. 6 characters';sErrs(e);return!Object.keys(e).length;};
+  const submit=async e=>{e.preventDefault();if(!validate())return;sBusy(true);try{await login(f.email.trim(),f.password);toast('Welcome back! 👋','success');}catch(err){toast(err.message,'error');sErrs({password:err.message});}finally{sBusy(false);}};
+  return(<div className="auth-shell">
+    <div className="auth-orb" style={{width:500,height:500,background:'var(--accent)',top:-220,left:-200}}/>
+    <div className="auth-orb" style={{width:380,height:380,background:'var(--green)',bottom:-160,right:-140}}/>
+    <div className="auth-card">
+      <div className="auth-top"><ThemeToggle/></div>
+      <span className="auth-logo-mark">BudgetWise</span>
+      <span className="auth-logo-sub">Smart Finance Tracker</span>
+      <h2 className="auth-title">Welcome back</h2>
+      <p className="auth-sub">Sign in to your account to continue</p>
+      <form onSubmit={submit}>
+        <div className="fg">
+          <label className="fl">Email address</label>
+          <div className="inp-wrap">
+            <span className="inp-ico"><Icon n="mail" size={14}/></span>
+            <input className="fi" type="email" placeholder="you@example.com" value={f.email} onChange={e=>sF(p=>({...p,email:e.target.value}))} style={{borderColor:errs.email?'var(--red)':''}}/>
+          </div>
+          {errs.email&&<div className="f-err">{errs.email}</div>}
+        </div>
+        <div className="fg">
+          <label className="fl">Password</label>
+          <div className="inp-wrap">
+            <span className="inp-ico"><Icon n="lock" size={14}/></span>
+            <input className="fi" type={showPw?'text':'password'} placeholder="Your password" value={f.password} onChange={e=>sF(p=>({...p,password:e.target.value}))} style={{borderColor:errs.password?'var(--red)':'',paddingRight:40}}/>
+            <span className="inp-eye" onClick={()=>sShowPw(p=>!p)}><Icon n={showPw?'eyeOff':'eye'} size={14}/></span>
+          </div>
+          {errs.password&&<div className="f-err">{errs.password}</div>}
+        </div>
+        <button type="submit" className="btn btn-primary btn-full" disabled={busy} style={{marginTop:6,padding:'11px',fontSize:14.5}}>
+          {busy?<><span className="spinner"/>&nbsp;Signing in…</>:'Sign In →'}
+        </button>
+      </form>
+      <div style={{display:'flex',alignItems:'center',gap:10,margin:'18px 0'}}>
+        <div style={{flex:1,height:1,background:'var(--border2)'}}/>
+        <span style={{fontSize:11.5,color:'var(--text3)'}}>or try demo</span>
+        <div style={{flex:1,height:1,background:'var(--border2)'}}/>
+      </div>
+      <button className="btn btn-ghost btn-full" onClick={()=>sF({email:'demo@budget.app',password:'demo1234'})}>🧪 Fill demo credentials</button>
+      <div className="auth-switch-row">Don't have an account? <a onClick={onSwitch}>Create one →</a></div>
+    </div>
+  </div>);
+}
+
+function SignupPage({onSwitch}){
+  const {register}=useAuth();const toast=useToast();
+  const [f,sF]=useState({name:'',email:'',password:'',confirm:''});
+  const [errs,sErrs]=useState({});const [busy,sBusy]=useState(false);const [showPw,sShowPw]=useState(false);
+  const str=pwStrength(f.password);
+  const strColor=['','var(--red)','var(--amber)','var(--blue)','var(--green)'][str];
+  const strLabel=['','Weak','Fair','Good','Strong'][str];
+  const validate=()=>{
+    const e={};
+    if(!f.name.trim()||f.name.trim().length<2)e.name='At least 2 characters';
+    if(!f.email)e.email='Email required';else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email))e.email='Invalid email';
+    if(!f.password||f.password.length<6)e.password='Min. 6 characters';
+    if(f.password!==f.confirm)e.confirm='Passwords do not match';
+    sErrs(e);return!Object.keys(e).length;
+  };
+  const submit=async e=>{e.preventDefault();if(!validate())return;sBusy(true);try{await register(f.name.trim(),f.email.trim(),f.password);toast('Account created! Welcome 🎉','success');}catch(err){toast(err.message,'error');sErrs({email:err.message});}finally{sBusy(false);}};
+  return(<div className="auth-shell">
+    <div className="auth-orb" style={{width:450,height:450,background:'var(--green)',top:-180,right:-160}}/>
+    <div className="auth-orb" style={{width:350,height:350,background:'var(--accent)',bottom:-140,left:-100}}/>
+    <div className="auth-card">
+      <div className="auth-top"><ThemeToggle/></div>
+      <span className="auth-logo-mark">BudgetWise</span>
+      <span className="auth-logo-sub">Smart Finance Tracker</span>
+      <h2 className="auth-title">Create your account</h2>
+      <p className="auth-sub">Start tracking your finances today</p>
+      <form onSubmit={submit}>
+        <div className="fg">
+          <label className="fl">Full Name</label>
+          <div className="inp-wrap"><span className="inp-ico"><Icon n="user" size={14}/></span>
+            <input className="fi" type="text" placeholder="John Doe" value={f.name} onChange={e=>sF(p=>({...p,name:e.target.value}))} style={{borderColor:errs.name?'var(--red)':''}}/>
+          </div>{errs.name&&<div className="f-err">{errs.name}</div>}
+        </div>
+        <div className="fg">
+          <label className="fl">Email address</label>
+          <div className="inp-wrap"><span className="inp-ico"><Icon n="mail" size={14}/></span>
+            <input className="fi" type="email" placeholder="you@example.com" value={f.email} onChange={e=>sF(p=>({...p,email:e.target.value}))} style={{borderColor:errs.email?'var(--red)':''}}/>
+          </div>{errs.email&&<div className="f-err">{errs.email}</div>}
+        </div>
+        <div className="fg">
+          <label className="fl">Password</label>
+          <div className="inp-wrap"><span className="inp-ico"><Icon n="lock" size={14}/></span>
+            <input className="fi" type={showPw?'text':'password'} placeholder="Min. 6 characters" value={f.password} onChange={e=>sF(p=>({...p,password:e.target.value}))} style={{borderColor:errs.password?'var(--red)':'',paddingRight:40}}/>
+            <span className="inp-eye" onClick={()=>sShowPw(p=>!p)}><Icon n={showPw?'eyeOff':'eye'} size={14}/></span>
+          </div>
+          {f.password&&<div><div className="pw-bar"><div className="pw-fill" style={{width:`${str*25}%`,background:strColor}}/></div><div style={{fontSize:10.5,color:strColor,marginTop:3}}>{strLabel}</div></div>}
+          {errs.password&&<div className="f-err">{errs.password}</div>}
+        </div>
+        <div className="fg">
+          <label className="fl">Confirm Password</label>
+          <div className="inp-wrap"><span className="inp-ico"><Icon n="lock" size={14}/></span>
+            <input className="fi" type="password" placeholder="Repeat password" value={f.confirm} onChange={e=>sF(p=>({...p,confirm:e.target.value}))} style={{borderColor:errs.confirm?'var(--red)':''}}/>
+          </div>{errs.confirm&&<div className="f-err">{errs.confirm}</div>}
+        </div>
+        <button type="submit" className="btn btn-primary btn-full" disabled={busy} style={{marginTop:4,padding:'11px',fontSize:14.5}}>
+          {busy?<><span className="spinner"/>&nbsp;Creating account…</>:'Create Account →'}
+        </button>
+      </form>
+      <div className="auth-switch-row">Already have an account? <a onClick={onSwitch}>Sign in →</a></div>
+    </div>
+  </div>);
+}
+
+/* ═══════════════════════════════ APP PAGES ════════════════════════════════ */
+
+function Dashboard(){
+  const api=useApi();const toast=useToast();
+  const [summary,sSummary]=useState(null);const [recent,sRecent]=useState([]);const [catData,sCatData]=useState([]);const [loading,sLoading]=useState(true);
+  const donutRef=useRef();const donutChart=useRef();
+
+  useEffect(()=>{
+    Promise.all([api('/transactions/summary'),api('/transactions?limit=6'),api('/analytics/category-breakdown')])
+      .then(([s,t,c])=>{sSummary(s);sRecent(t.transactions||[]);sCatData(c||[]);})
+      .catch(e=>toast(e.message,'error')).finally(()=>sLoading(false));
+  },[api]);
+
+  useEffect(()=>{
+    if(!donutRef.current||!catData.length)return;
+    if(donutChart.current)donutChart.current.destroy();
+    donutChart.current=new Chart(donutRef.current,{type:'doughnut',data:{labels:catData.map(d=>d.category),datasets:[{data:catData.map(d=>d.total),backgroundColor:catData.map(d=>CAT_COLORS[d.category]||'#888'),borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'67%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${fmt(c.raw)}`}}}}});
+    return()=>{if(donutChart.current)donutChart.current.destroy();};
+  },[catData]);
+
+  if(loading)return<div className="lc"><span className="spinner"/> Loading dashboard…</div>;
+
+  const sr=summary?.totalIncome>0?((summary.totalIncome-summary.totalExpense)/summary.totalIncome*100).toFixed(1):0;
+  const totExp=catData.reduce((s,d)=>s+d.total,0);
+
+  return(<div className="fade-up">
+    {summary?.belowMinBalance&&<div className="alert alert-warning">⚠️ Balance ({fmt(summary.balance)}) is below your minimum of {fmt(summary.minBalance)}</div>}
+    <div className="stat-grid">
+      {[
+        {cls:'income',ico:'📈',label:'Total Income',val:fmt(summary?.totalIncome),sub:`${summary?.transactionCount||0} transactions`},
+        {cls:'expense',ico:'📉',label:'Total Expenses',val:fmt(summary?.totalExpense),sub:'Across all categories'},
+        {cls:summary?.belowMinBalance?'warn':'balance',ico:'💰',label:'Current Balance',val:fmt(summary?.balance),sub:`Min: ${fmt(summary?.minBalance)}`,col:summary?.belowMinBalance?'var(--amber)':'var(--accent2)'},
+        {cls:'goals',ico:'📊',label:'Savings Rate',val:`${sr}%`,sub:parseFloat(sr)>=20?'✓ On track!':'Aim for 20%+',col:parseFloat(sr)>=20?'var(--green)':parseFloat(sr)>=10?'var(--amber)':'var(--red)'},
+      ].map(x=><div key={x.label} className={`sc ${x.cls}`}><div className="sc-ico">{x.ico}</div><div className="sl">{x.label}</div><div className="sv" style={{color:x.col}}>{x.val}</div><div className="sc2">{x.sub}</div></div>)}
+    </div>
+    <div style={{display:'grid',gridTemplateColumns:'1.2fr 1fr',gap:14}}>
+      <div className="card">
+        <div className="sh"><span className="shtl">Recent Transactions</span></div>
+        <div className="tx-list">
+          {recent.length===0?<div className="empty"><span className="empty-ico">💸</span><div>No transactions yet</div></div>:
+            recent.map(tx=><div key={tx._id} className="tx-item">
+              <div className={`tx-ico ${tx.type}`}>{CAT_ICONS[tx.category]||'💸'}</div>
+              <div className="tx-inf"><div className="tx-cat">{tx.category}</div><div className="tx-note">{tx.note||fds(tx.date)}</div></div>
+              <div><div className={`tx-amt ${tx.type}`}>{tx.type==='income'?'+':'-'}{fmt(tx.amount)}</div><div className="tx-dt">{fds(tx.date)}</div></div>
+            </div>)
+          }
+        </div>
+      </div>
+      <div className="card">
+        <div className="sh"><span className="shtl">Spending Breakdown</span></div>
+        {catData.length>0?<>
+          <div style={{position:'relative',height:155}}><canvas ref={donutRef} role="img" aria-label="Expense breakdown"/></div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:'4px 11px',marginTop:10}}>
+            {catData.slice(0,6).map(d=><span key={d.category} style={{display:'flex',alignItems:'center',gap:4,fontSize:11,color:'var(--text2)'}}><span style={{width:7,height:7,borderRadius:2,background:CAT_COLORS[d.category]||'#888',display:'inline-block'}}/>{d.category} · {totExp>0?((d.total/totExp)*100).toFixed(0):0}%</span>)}
+          </div>
+        </>:<div className="empty" style={{padding:30}}><span className="empty-ico">📊</span><div>No expenses yet</div></div>}
+      </div>
+    </div>
+  </div>);
+}
+
+function Transactions(){
+  const api=useApi();const toast=useToast();
+  const [txs,sTxs]=useState([]);const [loading,sLoading]=useState(true);const [showMo,sShowMo]=useState(false);
+  const [filter,sFilter]=useState('all');const [search,sSearch]=useState('');const [balance,sBalance]=useState(0);
+  const [form,sForm]=useState({type:'expense',category:'Food',amount:'',note:'',date:new Date().toISOString().split('T')[0]});
+  const [busy,sBusy]=useState(false);
+
+  const load=useCallback(async()=>{sLoading(true);try{const p=new URLSearchParams({limit:100});if(filter!=='all')p.set('type',filter);const d=await api(`/transactions?${p}`);sTxs(d.transactions||[]);sBalance(d.balance||0);}catch(e){toast(e.message,'error');}finally{sLoading(false);}},[api,filter]);
+  useEffect(()=>{load();},[load]);
+
+  const visible=txs.filter(t=>!search||(t.category.toLowerCase().includes(search.toLowerCase())||(t.note||'').toLowerCase().includes(search.toLowerCase())));
+
+  const handleAdd=async()=>{
+    if(!form.amount||parseFloat(form.amount)<=0){toast('Enter a valid amount','error');return;}
+    sBusy(true);try{
+      const r=await api('/transactions',{method:'POST',body:JSON.stringify({...form,amount:parseFloat(form.amount)})});
+      toast(`Added! Balance: ${fmt(r.newBalance)}`,'success');
+      if(r.belowMinBalance)toast('⚠️ Below minimum balance!','warning');
+      sShowMo(false);sForm({type:'expense',category:'Food',amount:'',note:'',date:new Date().toISOString().split('T')[0]});load();
+    }catch(e){toast(e.message,'error');}finally{sBusy(false);}
+  };
+
+  const handleDel=async id=>{
+    if(!confirm('Delete this transaction?'))return;
+    try{await api(`/transactions/${id}`,{method:'DELETE'});toast('Deleted','info');load();}catch(e){toast(e.message,'error');}
+  };
+
+  const exportCSV=()=>{
+    const rows=[['Date','Type','Category','Amount','Note'],...visible.map(t=>[fd(t.date),t.type,t.category,t.amount,t.note||''])];
+    const csv=rows.map(r=>r.join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='transactions.csv';a.click();
+    toast('Exported!','success');
+  };
+
+  return(<div className="fade-up">
+    <div style={{display:'flex',gap:9,marginBottom:14,flexWrap:'wrap'}}>
+      <input className="fi" placeholder="Search…" value={search} onChange={e=>sSearch(e.target.value)} style={{maxWidth:220}}/>
+      <div style={{display:'flex',background:'var(--bg3)',borderRadius:10,overflow:'hidden',border:'1px solid var(--border)'}}>
+        {['all','income','expense'].map(f=><button key={f} onClick={()=>sFilter(f)} style={{padding:'7px 15px',fontSize:12,fontWeight:500,cursor:'pointer',transition:'all .12s',color:filter===f?'var(--text)':'var(--text3)',background:filter===f?'var(--surface)':'transparent',textTransform:'capitalize',border:'none'}}>{f}</button>)}
+      </div>
+      <button className="btn btn-ghost btn-sm" onClick={exportCSV} style={{marginLeft:'auto'}}><Icon n="download" size={13}/> CSV</button>
+      <button className="btn btn-primary btn-sm" onClick={()=>sShowMo(true)}><Icon n="plus" size={13}/> Add</button>
+    </div>
+    <div className="card" style={{padding:0}}>
+      {loading?<div className="lc"><span className="spinner"/></div>:
+        visible.length===0?<div className="empty"><span className="empty-ico">💸</span><div>No transactions</div></div>:
+        <div className="table-wrap"><table>
+          <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Note</th><th style={{textAlign:'right'}}>Amount</th><th/></tr></thead>
+          <tbody>{visible.map(tx=><tr key={tx._id}>
+            <td style={{color:'var(--text3)',fontSize:11.5}}>{fd(tx.date)}</td>
+            <td><span className={`badge badge-${tx.type}`}>{tx.type}</span></td>
+            <td><span style={{display:'flex',alignItems:'center',gap:5}}>{CAT_ICONS[tx.category]} {tx.category}</span></td>
+            <td style={{color:'var(--text2)',maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{tx.note||'—'}</td>
+            <td style={{textAlign:'right',fontFamily:"'Syne',sans-serif",fontWeight:700,color:tx.type==='income'?'var(--green)':'var(--red)'}}>{tx.type==='income'?'+':'-'}{fmt(tx.amount)}</td>
+            <td><button className="btn btn-danger btn-xs" onClick={()=>handleDel(tx._id)}><Icon n="trash" size={11}/></button></td>
+          </tr>)}</tbody>
+        </table></div>}
+    </div>
+    {showMo&&<div className="mo" onClick={e=>e.target===e.currentTarget&&sShowMo(false)}>
+      <div className="md">
+        <div className="mdhd"><span className="mdt">Add Transaction</span><div className="mdx" onClick={()=>sShowMo(false)}>✕</div></div>
+        <div className="type-toggle">
+          <button className={`type-btn expense ${form.type==='expense'?'active':''}`} onClick={()=>sForm(f=>({...f,type:'expense',category:'Food'}))}>📉 Expense</button>
+          <button className={`type-btn income ${form.type==='income'?'active':''}`} onClick={()=>sForm(f=>({...f,type:'income',category:'Salary'}))}>📈 Income</button>
+        </div>
+        <div className="fg"><label className="fl">Category</label>
+          <div className="cat-pill-grid">
+            {(form.type==='expense'?EXPENSE_CATS:INCOME_CATS).map(cat=><div key={cat} className={`cat-pill ${form.category===cat?'selected':''}`}
+              style={{borderColor:CAT_COLORS[cat]||'var(--border)',color:form.category===cat?'#fff':'var(--text2)',background:form.category===cat?(CAT_COLORS[cat]||'var(--accent)'):'transparent'}}
+              onClick={()=>sForm(f=>({...f,category:cat}))}>{CAT_ICONS[cat]} {cat}</div>)}
+          </div>
+        </div>
+        <div className="fr">
+          <div className="fg"><label className="fl">Amount (₹)</label><input className="fi" type="number" min="0.01" placeholder="0.00" value={form.amount} onChange={e=>sForm(f=>({...f,amount:e.target.value}))}/></div>
+          <div className="fg"><label className="fl">Date</label><input className="fi" type="date" value={form.date} onChange={e=>sForm(f=>({...f,date:e.target.value}))}/></div>
+        </div>
+        <div className="fg"><label className="fl">Note</label><input className="fi" placeholder="Optional…" value={form.note} onChange={e=>sForm(f=>({...f,note:e.target.value}))}/></div>
+        {form.type==='expense'&&form.amount&&<div className="alert alert-info" style={{marginBottom:13,fontSize:12}}>Balance after: {fmt(Math.max(0,balance-(parseFloat(form.amount)||0)))}</div>}
+        <div style={{display:'flex',gap:9}}><button className="btn btn-ghost" style={{flex:1}} onClick={()=>sShowMo(false)}>Cancel</button><button className="btn btn-primary" style={{flex:1}} onClick={handleAdd} disabled={busy}>{busy?<span className="spinner"/>:<><Icon n="plus" size={13}/> Add</>}</button></div>
+      </div>
+    </div>}
+  </div>);
+}
+
+function Analytics(){
+  const api=useApi();const toast=useToast();
+  const [period,sPeriod]=useState('monthly');const [chartData,sChartData]=useState([]);const [catData,sCatData]=useState([]);const [loading,sLoading]=useState(true);
+  const chartRef=useRef();const chartInst=useRef();
+  useEffect(()=>{
+    sLoading(true);
+    const yr=new Date().getFullYear(),mo=new Date().getMonth()+1;
+    const ep=period==='daily'?`daily?year=${yr}&month=${mo}`:period==='weekly'?`weekly?year=${yr}`:`monthly?year=${yr}`;
+    Promise.all([api(`/analytics/${ep}`),api('/analytics/category-breakdown')])
+      .then(([c,cat])=>{sChartData(c||[]);sCatData(cat||[]);}).catch(e=>toast(e.message,'error')).finally(()=>sLoading(false));
+  },[period,api]);
+  useEffect(()=>{
+    if(!chartRef.current||!chartData.length)return;
+    if(chartInst.current)chartInst.current.destroy();
+    const labels=chartData.map(d=>d.month||d.week||(d.day?String(d.day):''));
+    chartInst.current=new Chart(chartRef.current,{type:'bar',data:{labels,datasets:[{label:'Income',data:chartData.map(d=>d.income),backgroundColor:'rgba(34,199,122,.7)',borderColor:'#22c77a',borderWidth:1,borderRadius:5},{label:'Expense',data:chartData.map(d=>d.expense),backgroundColor:'rgba(255,85,102,.7)',borderColor:'#ff5566',borderWidth:1,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.raw)}`}}},scales:{x:{grid:{color:'rgba(128,128,128,.07)'},ticks:{color:'var(--text3)',font:{size:10},maxRotation:45,autoSkip:true}},y:{grid:{color:'rgba(128,128,128,.07)'},ticks:{color:'var(--text3)',font:{size:10},callback:v=>`₹${(v/1000).toFixed(0)}k`}}}}});
+    return()=>{if(chartInst.current)chartInst.current.destroy();};
+  },[chartData]);
+  const totExp=catData.reduce((s,d)=>s+d.total,0);
+  return(<div className="fade-up">
+    <div className="card" style={{marginBottom:14}}>
+      <div className="chart-tabs">{['daily','weekly','monthly'].map(p=><div key={p} className={`chart-tab ${period===p?'active':''}`} onClick={()=>sPeriod(p)} style={{textTransform:'capitalize'}}>{p}</div>)}</div>
+      <div style={{display:'flex',gap:14,marginBottom:12}}>
+        {[['#22c77a','Income'],['#ff5566','Expense']].map(([c,l])=><span key={l} style={{display:'flex',alignItems:'center',gap:5,fontSize:11.5,color:'var(--text2)'}}><span style={{width:11,height:11,borderRadius:2,background:c,display:'inline-block'}}/>{l}</span>)}
+      </div>
+      {loading?<div className="lc" style={{height:250}}><span className="spinner"/></div>:<div style={{position:'relative',height:250}}><canvas ref={chartRef} role="img" aria-label="Income and expense chart"/></div>}
+    </div>
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+      <div className="card"><div className="shtl" style={{marginBottom:13}}>Expense by Category</div>
+        {catData.length===0?<div className="empty" style={{padding:24}}><span className="empty-ico">📊</span><div>No expense data</div></div>:
+          catData.map(d=><div key={d.category} style={{marginBottom:13}}>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}><span style={{fontSize:13,display:'flex',alignItems:'center',gap:5}}>{CAT_ICONS[d.category]} {d.category}</span><span style={{fontSize:13,fontWeight:700,fontFamily:"'Syne',sans-serif"}}>{fmt(d.total)}</span></div>
+            <div className="progress-bar"><div className="progress-fill" style={{width:`${totExp>0?(d.total/totExp*100):0}%`,background:CAT_COLORS[d.category]||'var(--accent)'}}/></div>
+            <div style={{fontSize:10.5,color:'var(--text3)',marginTop:3,textAlign:'right'}}>{totExp>0?((d.total/totExp)*100).toFixed(1):0}%</div>
+          </div>)
+        }
+      </div>
+      <div className="card"><div className="shtl" style={{marginBottom:13}}>Quick Stats</div>
+        {[{l:'Total Expense Txns',v:catData.reduce((s,d)=>s+d.count,0),i:'🔢'},{l:'Categories Used',v:catData.length,i:'🏷️'},{l:'Top Category',v:catData[0]?.category||'—',i:'🏆'},{l:'Top Spend',v:catData[0]?fmt(catData[0].total):'—',i:'💸'}].map(s=>
+          <div key={s.l} style={{display:'flex',justifyContent:'space-between',padding:'9px 0',borderBottom:'1px solid var(--border)'}}><span style={{fontSize:12.5,color:'var(--text2)'}}>{s.i} {s.l}</span><span style={{fontSize:12.5,fontWeight:600}}>{s.v}</span></div>)}
+      </div>
+    </div>
+  </div>);
+}
+
+function Goals(){
+  const api=useApi();const toast=useToast();
+  const [goals,sGoals]=useState([]);const [balance,sBalance]=useState(0);const [loading,sLoading]=useState(true);
+  const [showMo,sShowMo]=useState(false);const [busy,sBusy]=useState(false);
+  const [form,sForm]=useState({name:'',targetAmount:'',emoji:'🎯',deadline:''});
+  const EMJS=['🎯','💻','🏖️','🚗','🏠','💍','📚','🎓','🛡️','✈️','💊','🎸'];
+
+  const load=useCallback(async()=>{sLoading(true);try{const[g,s]=await Promise.all([api(`/goals`),api(`/transactions/summary`)]);sGoals(g||[]);sBalance(s.balance||0);}catch(e){toast(e.message,'error');}finally{sLoading(false);}},[api]);
+  useEffect(()=>{load();},[load]);
+
+  const handleAdd=async()=>{
+    if(!form.name.trim()||!form.targetAmount){toast('Fill all required fields','error');return;}
+    sBusy(true);try{await api('/goals',{method:'POST',body:JSON.stringify({...form,targetAmount:parseFloat(form.targetAmount)})});toast('Goal created!','success');sShowMo(false);sForm({name:'',targetAmount:'',emoji:'🎯',deadline:''});load();}catch(e){toast(e.message,'error');}finally{sBusy(false);}
+  };
+  const handleComplete=async(id,name)=>{try{await api(`/goals/${id}/complete`,{method:'PATCH'});toast(`🎉 "${name}" completed!`,'success');load();}catch(e){toast(e.message,'error');}};
+  const handleDel=async id=>{if(!confirm('Delete goal?'))return;try{await api(`/goals/${id}`,{method:'DELETE'});toast('Deleted','info');load();}catch(e){toast(e.message,'error');}};
+
+  if(loading)return<div className="lc"><span className="spinner"/> Loading goals…</div>;
+  const active=goals.filter(g=>!g.completed),done=goals.filter(g=>g.completed);
+  return(<div className="fade-up">
+    <div style={{display:'flex',justifyContent:'flex-end',marginBottom:16}}>
+      <button className="btn btn-primary" onClick={()=>sShowMo(true)}><Icon n="plus" size={13}/> New Goal</button>
+    </div>
+    {active.length===0&&done.length===0&&<div className="empty"><span className="empty-ico">🎯</span><div>No goals yet. Create your first!</div></div>}
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:13,marginBottom:20}}>
+      {active.map(g=>{const pct=Math.min(100,(g.savedAmount/g.targetAmount)*100);const can=balance>=g.targetAmount;return(
+        <div key={g._id} className="goal-card fade-up">
+          {can&&<div className="alert alert-success" style={{marginBottom:9,fontSize:11.5}}>🎉 You can afford this now!</div>}
+          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+            <div style={{fontSize:28}}>{g.emoji}</div>
+            <div style={{flex:1}}><div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:13.5}}>{g.name}</div>{g.deadline&&<div style={{fontSize:10.5,color:'var(--text3)',marginTop:1}}>Due {fd(g.deadline)}</div>}</div>
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}><span style={{fontSize:12,color:'var(--text2)'}}>Progress</span><span style={{fontSize:12}}><strong style={{fontFamily:"'Syne',sans-serif"}}>{fmt(g.savedAmount)}</strong> / {fmt(g.targetAmount)}</span></div>
+          <div className="progress-bar" style={{marginBottom:5}}><div className="progress-fill" style={{width:`${pct}%`,background:pct>=100?'var(--green)':pct>=50?'var(--accent)':'var(--amber)'}}/></div>
+          <div style={{fontSize:10.5,color:'var(--text3)',marginBottom:11}}>{pct.toFixed(0)}% · Need {fmt(Math.max(0,g.targetAmount-g.savedAmount))} more</div>
+          <div style={{display:'flex',gap:7}}>
+            <button className="btn btn-success btn-sm" style={{flex:1}} onClick={()=>handleComplete(g._id,g.name)}><Icon n="check" size={13}/> Done</button>
+            <button className="btn btn-danger btn-xs" onClick={()=>handleDel(g._id)}><Icon n="trash" size={12}/></button>
+          </div>
+        </div>
+      );})}
+    </div>
+    {done.length>0&&<><div className="divider"/><div className="shtl" style={{marginBottom:12,color:'var(--text2)'}}>✓ Completed</div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(250px,1fr))',gap:10}}>
+        {done.map(g=><div key={g._id} className="goal-card completed" style={{padding:13,display:'flex',alignItems:'center',gap:10}}><span style={{fontSize:22}}>{g.emoji}</span><div style={{flex:1}}><div style={{fontSize:13,fontWeight:600}}>{g.name}</div><div style={{fontSize:10.5,color:'var(--green)'}}>✓ Completed</div></div><span style={{fontSize:13,fontFamily:"'Syne',sans-serif",fontWeight:700,color:'var(--green)'}}>{fmt(g.targetAmount)}</span></div>)}
+      </div></>}
+    {showMo&&<div className="mo" onClick={e=>e.target===e.currentTarget&&sShowMo(false)}>
+      <div className="md">
+        <div className="mdhd"><span className="mdt">Create Goal</span><div className="mdx" onClick={()=>sShowMo(false)}>✕</div></div>
+        <div className="fg"><label className="fl">Emoji</label>
+          <div style={{display:'flex',flexWrap:'wrap',gap:7}}>{EMJS.map(e=><span key={e} onClick={()=>sForm(f=>({...f,emoji:e}))} style={{fontSize:21,cursor:'pointer',padding:'3px 5px',borderRadius:7,background:form.emoji===e?'var(--surface3)':'transparent',border:form.emoji===e?'1.5px solid var(--border2)':'1.5px solid transparent',transition:'all .12s'}}>{e}</span>)}</div>
+        </div>
+        <div className="fg"><label className="fl">Goal Name *</label><input className="fi" placeholder="e.g. Buy a new TV" value={form.name} onChange={e=>sForm(f=>({...f,name:e.target.value}))}/></div>
+        <div className="fr">
+          <div className="fg"><label className="fl">Target Amount (₹) *</label><input className="fi" type="number" min="1" placeholder="40000" value={form.targetAmount} onChange={e=>sForm(f=>({...f,targetAmount:e.target.value}))}/></div>
+          <div className="fg"><label className="fl">Deadline</label><input className="fi" type="date" value={form.deadline} onChange={e=>sForm(f=>({...f,deadline:e.target.value}))}/></div>
+        </div>
+        {form.targetAmount&&<div className="alert alert-info" style={{marginBottom:12,fontSize:11.5}}>{balance>=parseFloat(form.targetAmount)?'🎉 You can already afford this!':'Need '+fmt(Math.max(0,parseFloat(form.targetAmount)-balance))+' more'}</div>}
+        <div style={{display:'flex',gap:9}}><button className="btn btn-ghost" style={{flex:1}} onClick={()=>sShowMo(false)}>Cancel</button><button className="btn btn-primary" style={{flex:1}} onClick={handleAdd} disabled={busy}>{busy?<span className="spinner"/>:'Create Goal'}</button></div>
+      </div>
+    </div>}
+  </div>);
+}
+
+function AIAdvisor(){
+  const api=useApi();const toast=useToast();
+  const [summary,sSummary]=useState(null);
+  const [msgs,sMsgs]=useState([{role:'ai',content:'Hi! I\'m your AI Financial Advisor 🤖\n\nLoading your financial data…'}]);
+  const [inp,sInp]=useState('');const [busy,sBusy]=useState(false);const botRef=useRef();
+
+  useEffect(()=>{
+    api('/transactions/summary').then(s=>{sSummary(s);sMsgs([{role:'ai',content:`Hi! I'm your AI Financial Advisor 🤖\n\nYour balance: ${fmt(s.balance)} | Income: ${fmt(s.totalIncome)} | Expenses: ${fmt(s.totalExpense)}\n\nAsk me anything:\n• "How should I allocate my ${fmt(s.balance)}?"\n• "Suggest a budget plan"\n• "How to build emergency fund?"`}]);}).catch(()=>{});
+  },[api]);
+
+  useEffect(()=>{botRef.current?.scrollIntoView({behavior:'smooth'});},[msgs]);
+
+  const callAI=async msg=>{
+    sBusy(true);try{
+      const ctx=summary?`Balance=${fmt(summary.balance)}, Income=${fmt(summary.totalIncome)}, Expenses=${fmt(summary.totalExpense)}, Savings rate=${summary.totalIncome>0?((summary.totalIncome-summary.totalExpense)/summary.totalIncome*100).toFixed(1):0}%.`:'';
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:`You are a friendly Indian personal finance advisor. User context: ${ctx} Be concise, practical, use ₹. Max 3 paragraphs.`,messages:[...msgs.filter(m=>m.id).map(m=>({role:m.role==='ai'?'assistant':'user',content:m.content})),{role:'user',content:msg}]})});
+      const d=await res.json();const text=d.content?.map(b=>b.text||'').join('')||'Sorry, could not process that.';
+      sMsgs(m=>[...m,{role:'ai',content:text,id:Date.now()}]);
+    }catch{
+      const b=summary?.balance||0,inc=summary?.totalIncome||0,exp=summary?.totalExpense||0;
+      const sr=inc>0?((inc-exp)/inc*100).toFixed(1):0;const amt=parseFloat((msg.match(/[\d,]+/)?.[0]||'').replace(',',''))||b;
+      let advice;
+      if(msg.toLowerCase().includes('alloc')||msg.toLowerCase().includes('how')){
+        advice=`Smart allocation for ${fmt(amt)}:\n\n💰 Savings & Investments: 40% = ${fmt(amt*0.4)}\n🏠 Essentials: 30% = ${fmt(amt*0.3)}\n🎯 Lifestyle: 20% = ${fmt(amt*0.2)}\n🛡️ Emergency: 10% = ${fmt(amt*0.1)}\n\nYour savings rate: ${sr}%. ${parseFloat(sr)>=20?'Excellent!':'Aim for at least 20%.'}\n\n💡 Start SIP in Nifty 50 index fund for long-term wealth.`;
+      }else{
+        advice=`Your Financial Snapshot:\n\n📊 Savings rate: ${sr}%\n💰 Monthly surplus: ${fmt((inc-exp)/12||0)}\n\nRecommendations:\n1. ${parseFloat(sr)<20?'Cut discretionary spending to reach 20% savings':'Maintain your savings rate!'}\n2. Invest in Nifty 50 ETF via SIP\n3. Build 6-month emergency fund = ${fmt((exp/12||15000)*6)}\n4. Use ELSS for 80C tax savings\n\n💡 Track daily expenses to find spending leaks!`;
+      }
+      sMsgs(m=>[...m,{role:'ai',content:advice,id:Date.now()}]);
+    }
+    sBusy(false);
+  };
+
+  const send=async()=>{if(!inp.trim()||busy)return;const msg=inp.trim();sInp('');sMsgs(m=>[...m,{role:'user',content:msg}]);await callAI(msg);};
+  const qq=[`How to allocate ${fmt(summary?.balance||50000)}?`,'Suggest a monthly budget','How to build emergency fund?','Best investment options in India?'];
+
+  return(<div className="fade-up">
+    <div style={{display:'grid',gridTemplateColumns:'1fr 270px',gap:14,alignItems:'start'}}>
+      <div className="card">
+        <div style={{display:'flex',alignItems:'center',gap:11,marginBottom:13,paddingBottom:11,borderBottom:'1px solid var(--border)'}}>
+          <div style={{width:36,height:36,borderRadius:9,background:'linear-gradient(135deg,var(--accent3),var(--accent))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:17}}>🤖</div>
+          <div><div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,fontSize:14}}>AI Financial Advisor</div><div style={{fontSize:10.5,color:'var(--green)'}}>● Powered by Claude</div></div>
+        </div>
+        <div className="chat-messages">
+          {msgs.map((m,i)=><div key={i} className={`chat-msg ${m.role==='user'?'user':''}`}>
+            <div className={`chat-avatar ${m.role==='ai'?'ai':'user'}`}>{m.role==='ai'?'AI':'👤'}</div>
+            <div className="chat-bubble" style={{whiteSpace:'pre-wrap'}}>{m.content}</div>
+          </div>)}
+          {busy&&<div className="chat-msg"><div className="chat-avatar ai">AI</div><div className="chat-bubble"><span className="spinner"/></div></div>}
+          <div ref={botRef}/>
+        </div>
+        <div className="chat-input-row">
+          <input className="fi" placeholder="Ask about your finances…" value={inp} onChange={e=>sInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&send()} style={{flex:1}}/>
+          <button className="btn btn-primary btn-sm" onClick={send} disabled={busy||!inp.trim()}><Icon n="send" size={13}/></button>
+        </div>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:11}}>
+        <div className="card-sm"><div style={{fontSize:10.5,color:'var(--text3)',marginBottom:9,fontWeight:600,textTransform:'uppercase',letterSpacing:'.5px'}}>Quick Questions</div>
+          {qq.map((q,i)=><button key={i} className="btn btn-ghost btn-sm" style={{width:'100%',textAlign:'left',marginBottom:6,fontSize:11.5,justifyContent:'flex-start'}} onClick={()=>sInp(q)} disabled={busy}>{q.length>40?q.slice(0,40)+'…':q}</button>)}
+        </div>
+        {summary&&<div className="card-sm"><div style={{fontSize:10.5,color:'var(--text3)',marginBottom:9,fontWeight:600,textTransform:'uppercase',letterSpacing:'.5px'}}>Your Summary</div>
+          {[['Balance',fmt(summary.balance),'var(--accent2)'],['Income',fmt(summary.totalIncome),'var(--green)'],['Expenses',fmt(summary.totalExpense),'var(--red)']].map(([l,v,c])=>
+            <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid var(--border)',fontSize:12.5}}><span style={{color:'var(--text2)'}}>{l}</span><span style={{fontWeight:700,color:c}}>{v}</span></div>)}
+        </div>}
+      </div>
+    </div>
+  </div>);
+}
+
+function SettingsPage(){
+  const api=useApi();const {user,updateUser,logout}=useAuth();const toast=useToast();const {theme,toggle}=useTheme();
+  const [form,sForm]=useState({name:user?.name||'',minBalance:user?.minBalance||1000});const [saving,sSaving]=useState(false);
+  const save=async()=>{sSaving(true);try{const u=await api('/settings',{method:'PATCH',body:JSON.stringify(form)});updateUser(u);toast('Saved!','success');}catch(e){toast(e.message,'error');}finally{sSaving(false);}};
+  const exportCSV=async()=>{try{const d=await api('/transactions?limit=1000');const rows=[['Date','Type','Category','Amount','Note'],...(d.transactions||[]).map(t=>[fd(t.date),t.type,t.category,t.amount,t.note||''])];const csv=rows.map(r=>r.join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='transactions.csv';a.click();toast('Exported!','success');}catch(e){toast(e.message,'error');}};
+  return(<div className="fade-up" style={{maxWidth:540}}>
+    <div className="card" style={{marginBottom:14}}>
+      <div className="shtl" style={{marginBottom:16}}>Appearance</div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'11px 0',borderBottom:'1px solid var(--border)'}}>
+        <div><div style={{fontSize:13.5,fontWeight:600}}>{theme==='dark'?'🌙 Dark Mode':'☀️ Light Mode'}</div><div style={{fontSize:11.5,color:'var(--text3)',marginTop:2}}>Currently using {theme} theme</div></div>
+        <ThemeToggle/>
+      </div>
+    </div>
+    <div className="card" style={{marginBottom:14}}>
+      <div className="shtl" style={{marginBottom:16}}>Profile & Preferences</div>
+      <div style={{display:'flex',alignItems:'center',gap:13,padding:'0 0 14px',marginBottom:14,borderBottom:'1px solid var(--border)'}}>
+        <div style={{width:44,height:44,borderRadius:11,background:'linear-gradient(135deg,var(--accent3),var(--accent))',display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,fontWeight:700,color:'#fff',fontFamily:"'Syne',sans-serif"}}>{user?.name?.[0]?.toUpperCase()||'?'}</div>
+        <div><div style={{fontSize:14.5,fontWeight:700}}>{user?.name}</div><div style={{fontSize:11.5,color:'var(--text3)'}}>{user?.email}</div></div>
+      </div>
+      <div className="fg"><label className="fl">Display Name</label><input className="fi" value={form.name} onChange={e=>sForm(f=>({...f,name:e.target.value}))} placeholder="Your name"/></div>
+      <div className="fg"><label className="fl">Minimum Balance Threshold (₹)</label><input className="fi" type="number" min="0" value={form.minBalance} onChange={e=>sForm(f=>({...f,minBalance:parseFloat(e.target.value)||0}))}/><div style={{fontSize:11,color:'var(--text3)',marginTop:3}}>Alerts when balance drops below this</div></div>
+      <button className="btn btn-primary" onClick={save} disabled={saving}>{saving?<span className="spinner"/>:'Save Changes'}</button>
+    </div>
+    <div className="card" style={{marginBottom:14}}>
+      <div className="shtl" style={{marginBottom:13}}>Export Data</div>
+      <button className="btn btn-ghost" style={{justifyContent:'flex-start'}} onClick={exportCSV}><Icon n="download" size={13}/> Export Transactions (CSV)</button>
+    </div>
+    <div className="card" style={{borderColor:'var(--red3)'}}>
+      <div style={{fontSize:14,fontWeight:700,color:'var(--red)',marginBottom:6}}>⚠️ Account</div>
+      <div style={{fontSize:12.5,color:'var(--text2)',marginBottom:13}}>Sign out from your account. Your data stays safe in MongoDB.</div>
+      <button className="btn btn-danger" onClick={()=>{if(confirm('Sign out?')){logout();toast('Signed out','info');}}}><Icon n="logout" size={13}/> Sign Out</button>
+    </div>
+  </div>);
+}
+
+/* ═══════════════════════════════ APP SHELL ════════════════════════════════ */
+const NAV=[{id:'dashboard',label:'Dashboard',icon:'dashboard'},{id:'transactions',label:'Transactions',icon:'transaction'},{id:'analytics',label:'Analytics',icon:'analytics'},{id:'goals',label:'Goals',icon:'goals'},{id:'ai',label:'AI Advisor',icon:'ai'},{id:'settings',label:'Settings',icon:'settings'}];
+const TITLES={dashboard:'Dashboard',transactions:'Transactions',analytics:'Analytics',goals:'Financial Goals',ai:'AI Advisor',settings:'Settings'};
+const PAGES={dashboard:Dashboard,transactions:Transactions,analytics:Analytics,goals:Goals,ai:AIAdvisor,settings:SettingsPage};
+
+function AppShell(){
+  const [page,sPage]=useState('dashboard');const [sbOpen,sSbOpen]=useState(false);
+  const {user,logout}=useAuth();const toast=useToast();
+  const PageComp=PAGES[page];
+  const nav=id=>{sPage(id);sSbOpen(false);};
+  return(<div className="app-shell">
+    {sbOpen&&<div className="sb-backdrop show" onClick={()=>sSbOpen(false)}/>}
+    <aside className={`sidebar ${sbOpen?'open':''}`}>
+      <div className="sb-logo"><div className="logo-mark">BudgetWise</div><div className="logo-sub">Smart Finance</div></div>
+      <nav className="sb-nav">
+        {NAV.map(n=><div key={n.id} className={`ni ${page===n.id?'active':''}`} onClick={()=>nav(n.id)}>
+          <div className="ni-ico"><Icon n={n.icon} size={16}/></div><span>{n.label}</span>
+        </div>)}
+      </nav>
+      <div className="sb-foot">
+        <div className="user-chip" onClick={()=>nav('settings')}>
+          <div className="u-avatar">{user?.name?.[0]?.toUpperCase()||'?'}</div>
+          <div style={{flex:1,minWidth:0}}><div className="u-name">{user?.name}</div><div className="u-email">{user?.email}</div></div>
+        </div>
+        <div className="sb-actions">
+          <ThemeToggle/>
+          <button className="btn btn-ghost btn-sm" style={{flex:1}} onClick={()=>{if(confirm('Sign out?')){logout();toast('Signed out','info');}}}>
+            <Icon n="logout" size={13}/> Sign Out
+          </button>
+        </div>
+      </div>
+    </aside>
+    <main className="main">
+      <div className="mhd">
+        <div style={{display:'flex',alignItems:'center',gap:11}}>
+          <button className="hamburger" onClick={()=>sSbOpen(!sbOpen)}><Icon n="menu" size={16}/></button>
+          <h1 className="page-title">{TITLES[page]}</h1>
+        </div>
+        <button className="btn btn-ghost btn-sm" onClick={()=>nav('transactions')}><Icon n="plus" size={13}/> Add Transaction</button>
+      </div>
+      <div className="page-content"><PageComp key={page}/></div>
+    </main>
+  </div>);
+}
+
+/* ═══════════════════════════════ AUTH GATE ════════════════════════════════ */
+function AuthGate(){
+  const {user,loading}=useAuth();const [view,sView]=useState('login');
+  if(loading)return(<div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:14,background:'var(--bg)'}}>
+    <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,fontWeight:800,background:'var(--logo-grad)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>BudgetWise</div>
+    <span className="spinner" style={{width:26,height:26,borderWidth:2.5}}/>
+  </div>);
+  if(!user)return view==='login'?<LoginPage onSwitch={()=>sView('signup')}/>:<SignupPage onSwitch={()=>sView('login')}/>;
+  return<AppShell/>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <ThemeProvider><ToastProvider><AuthProvider><AuthGate/></AuthProvider></ToastProvider></ThemeProvider>
+);
+</script>
+</body>
+</html>
